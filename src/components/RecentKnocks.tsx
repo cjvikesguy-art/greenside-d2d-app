@@ -76,10 +76,25 @@ export const RecentKnocks = ({ history }: RecentKnocksProps) => {
               <X size={16} />
             </button>
             <h3 className="font-bold text-lg text-gray-800 mb-1">Knock Details</h3>
-            <p className="text-xs text-gray-500 mb-4">{getTypeText(activeNotes.type)} • {formatDistanceToNow(activeNotes.timestamp, { addSuffix: true })}</p>
+            <p className="text-xs text-gray-500 mb-2">{getTypeText(activeNotes.type)} • {formatDistanceToNow(activeNotes.timestamp, { addSuffix: true })}</p>
+            
+            {(activeNotes.appointmentDate || activeNotes.subscriptionTier) && (
+               <div className="flex flex-wrap gap-2 mb-4">
+                 {activeNotes.appointmentDate && (
+                   <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
+                     Appt: {activeNotes.appointmentDate} {activeNotes.appointmentTime || activeNotes.appointmentTimeType}
+                   </span>
+                 )}
+                 {activeNotes.subscriptionTier && (
+                   <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">
+                     {activeNotes.subscriptionTier} Tier
+                   </span>
+                 )}
+               </div>
+            )}
             
             <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{activeNotes.notes}</p>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{activeNotes.notes || 'No notes left.'}</p>
             </div>
           </div>
         </div>

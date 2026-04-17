@@ -22,17 +22,20 @@ const locationIcon = L.divIcon({
 });
 
 const createHistoryIcon = (type: string) => {
+  const isLead = type === 'lead';
   let color = '#ffffff'; // notHome = white
   let border = '#374151'; // dark border for white
   if (type === 'notInterested') { color = '#ef4444'; border = '#ffffff'; } // red
-  if (type === 'lead') { color = '#3b82f6'; border = '#ffffff'; } // blue
+  if (isLead) { color = '#3b82f6'; border = '#ffffff'; } // blue
   if (type === 'sale') { color = '#c5a059'; border = '#ffffff'; } // gold
 
   return L.divIcon({
     className: 'history-pin',
-    html: `<div style="background-color: ${color}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid ${border}; box-shadow: 0 1px 4px rgba(0,0,0,0.4);"></div>`,
-    iconSize: [16, 16],
-    iconAnchor: [8, 8]
+    html: isLead 
+      ? `<div style="background-color: ${color}; width: 22px; height: 22px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>`
+      : `<div style="background-color: ${color}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid ${border}; box-shadow: 0 1px 4px rgba(0,0,0,0.4);"></div>`,
+    iconSize: isLead ? [22, 22] : [16, 16],
+    iconAnchor: isLead ? [11, 11] : [8, 8]
   });
 };
 

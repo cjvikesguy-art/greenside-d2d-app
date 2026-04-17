@@ -12,7 +12,12 @@ export interface KnockRecord {
   price?: string;
   notes?: string;
   repName?: string;
+  appointmentDate?: string;
+  appointmentTimeType?: string;
+  appointmentTime?: string;
+  subscriptionTier?: string;
 }
+
 
 export interface TerritoryRecord {
   id: string;

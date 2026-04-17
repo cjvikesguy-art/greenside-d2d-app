@@ -12,6 +12,7 @@ import { useGeolocation } from './hooks/useGeolocation';
 import type { KnockRecord, TerritoryRecord } from './types';
 import { User, Trophy } from 'lucide-react';
 import { supabase } from './lib/supabase';
+import { salesConfig } from './salesConfig';
 
 function App() {
   const [repName, setRepName] = useState(() => {
@@ -56,6 +57,10 @@ function App() {
           notes: dbRec.notes,
           services: dbRec.services,
           timestamp: new Date(dbRec.created_at).getTime(),
+          appointmentDate: dbRec.appointment_date,
+          appointmentTimeType: dbRec.appointment_time_type,
+          appointmentTime: dbRec.appointment_time,
+          subscriptionTier: dbRec.subscription_tier
         }));
         setHistory(mappedHistory);
       }
@@ -101,6 +106,10 @@ function App() {
             notes: dbRec.notes,
             services: dbRec.services,
             timestamp: new Date(dbRec.created_at).getTime(),
+            appointmentDate: dbRec.appointment_date,
+            appointmentTimeType: dbRec.appointment_time_type,
+            appointmentTime: dbRec.appointment_time,
+            subscriptionTier: dbRec.subscription_tier
           };
           setHistory(prev => {
             if (prev.find(k => k.id === newRecord.id)) return prev;
@@ -119,7 +128,11 @@ function App() {
              phone: dbRec.phone,
              price: dbRec.price,
              notes: dbRec.notes,
-             services: dbRec.services
+             services: dbRec.services,
+             appointmentDate: dbRec.appointment_date,
+             appointmentTimeType: dbRec.appointment_time_type,
+             appointmentTime: dbRec.appointment_time,
+             subscriptionTier: dbRec.subscription_tier
            } : k));
         }
       )
@@ -218,7 +231,11 @@ function App() {
         phone: data.phone,
         price: data.price,
         notes: data.notes,
-        services: data.services
+        services: data.services,
+        appointment_date: data.appointmentDate,
+        appointment_time_type: data.appointmentTimeType,
+        appointment_time: data.appointmentTime,
+        subscription_tier: data.subscriptionTier
       };
       
       await supabase.from('knocks').update(dbPayload).eq('id', updatedRecord.id);
@@ -240,7 +257,11 @@ function App() {
         price: data.price,
         notes: data.notes,
         services: data.services,
-        repName
+        repName,
+        appointmentDate: data.appointmentDate,
+        appointmentTimeType: data.appointmentTimeType,
+        appointmentTime: data.appointmentTime,
+        subscriptionTier: data.subscriptionTier
       };
 
       setHistory(prev => [newRecord, ...prev]);
@@ -255,10 +276,23 @@ function App() {
         phone: newRecord.phone,
         price: newRecord.price,
         notes: newRecord.notes,
-        services: newRecord.services
+        services: newRecord.services,
+        appointment_date: newRecord.appointmentDate,
+        appointment_time_type: newRecord.appointmentTimeType,
+        appointment_time: newRecord.appointmentTime,
+        subscription_tier: newRecord.subscriptionTier
       };
 
       await supabase.from('knocks').insert(dbPayload);
+
+      // Webhook trigger
+      if (newRecord.type === 'sale' && salesConfig.calendarWebhookUrl) {
+         fetch(salesConfig.calendarWebhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newRecord)
+         }).catch(err => console.error("Webhook err:", err));
+      }
       
       setFormOpen(false);
       setActiveAction(null);
@@ -293,6 +327,10 @@ function App() {
     lead: myTodayHistory.filter(h => h.type === 'lead').length,
     sale: myTodayHistory.filter(h => h.type === 'sale').length,
   };
+
+  const totalVolume = myTodayHistory
+    .filter(h => h.type === 'sale' && h.price)
+    .reduce((acc, h) => acc + (parseFloat(h.price!) || 0), 0);
 
   return (
     <div className="h-[100dvh] w-full flex flex-col bg-gray-100 overflow-hidden font-sans relative">
@@ -353,7 +391,7 @@ function App() {
         <Leaderboard history={history} onClose={() => setShowLeaderboard(false)} />
       )}
 
-      <DailyStats stats={stats} />
+      <DailyStats stats={stats} totalVolume={totalVolume} />
       
       <div className="flex-grow flex flex-col relative z-0">
         <GPSMap 
