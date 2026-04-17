@@ -1,48 +1,86 @@
-import React from 'react';
+import { Home, Ban, Star, Trophy, MapPin } from 'lucide-react';
 
 export type ActionType = 'notHome' | 'notInterested' | 'lead' | 'sale';
 
 interface KnockBarProps {
-  onAction: (action: ActionType) => void;
+  onAction: (action: ActionType | null) => void;
   activeAction: ActionType | null;
 }
 
-export const KnockBar: React.FC<KnockBarProps> = ({ onAction, activeAction }) => {
+export const KnockBar = ({ onAction, activeAction }: KnockBarProps) => {
+  const getButtonStyles = (type: ActionType) => {
+    switch(type) {
+      case 'notHome':
+        return activeAction === type
+          ? 'bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)] border-gray-400 text-gray-800 scale-110 -translate-y-2'
+          : 'bg-white/80 hover:bg-white text-gray-600 border-gray-200 hover:border-gray-300';
+      case 'notInterested':
+        return activeAction === type
+          ? 'bg-gradient-to-br from-red-500 to-red-600 shadow-[0_0_15px_rgba(239,68,68,0.8)] border-red-500 text-white scale-110 -translate-y-2'
+          : 'bg-white/80 hover:bg-red-50 text-red-500 border-red-100 hover:border-red-200';
+      case 'lead':
+        return activeAction === type
+          ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-[0_0_15px_rgba(59,130,246,0.8)] border-blue-500 text-white scale-110 -translate-y-2'
+          : 'bg-white/80 hover:bg-blue-50 text-blue-500 border-blue-100 hover:border-blue-200';
+      case 'sale':
+        return activeAction === type
+          ? 'bg-gradient-to-br from-yellow-400 to-amber-600 shadow-[0_0_15px_rgba(197,160,89,0.8)] border-amber-500 text-white scale-110 -translate-y-2'
+          : 'bg-white/80 hover:bg-amber-50 text-amber-600 border-amber-100 hover:border-amber-200';
+    }
+  };
+
+  const getIcon = (type: ActionType) => {
+    switch(type) {
+      case 'notHome': return <Home size={24} strokeWidth={2.5} />;
+      case 'notInterested': return <Ban size={24} strokeWidth={2.5} />;
+      case 'lead': return <Star size={24} strokeWidth={2.5} />;
+      case 'sale': return <Trophy size={24} strokeWidth={2.5} />;
+    }
+  };
+
+  const getLabel = (type: ActionType) => {
+    switch(type) {
+      case 'notHome': return 'NH';
+      case 'notInterested': return 'NI';
+      case 'lead': return 'Lead';
+      case 'sale': return 'Sale';
+    }
+  };
+
+  const buttons: ActionType[] = ['notHome', 'notInterested', 'lead', 'sale'];
+
   return (
-    <div className="bg-white px-4 py-4 pb-8 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] rounded-t-3xl border-t border-gray-100 flex-shrink-0 z-20">
+    <div className="relative z-[500] w-full pb-6 pt-2 px-4 pointer-events-none">
+      
+      {/* Placement Mode Toast */}
       {activeAction && (
-        <div className="absolute top-0 left-0 right-0 -translate-y-full pb-4 pointer-events-none flex justify-center z-30">
-          <div className="bg-gray-800 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg animate-bounce uppercase tracking-widest border border-gray-700 pointer-events-auto flex items-center space-x-2">
-            <span>Tap Map to Place {activeAction.toUpperCase()}</span>
-            <button onClick={() => onAction(null as any) /* Cancel mechanism managed outside */} className="ml-2 text-gray-400 hover:text-white rounded-full bg-gray-700 w-5 h-5 flex items-center justify-center font-black">✕</button>
+        <div className="absolute -top-14 left-0 right-0 flex justify-center pointer-events-none animate-[slide-down_0.3s_ease-out]">
+          <div className="bg-gray-900 text-white px-6 py-2.5 rounded-full shadow-2xl flex items-center space-x-2 border border-gray-700">
+            <MapPin size={16} className="animate-bounce text-blue-400" />
+            <span className="text-sm font-bold tracking-widest uppercase">Tap Map to Place</span>
           </div>
         </div>
       )}
-      <div className="grid grid-cols-2 gap-3 mb-2">
-        <button
-          onClick={() => onAction('notHome')}
-          className={`py-4 rounded-2xl font-bold tracking-wide transition-all active:scale-95 border-2 text-gray-700 bg-white shadow-sm ${activeAction === 'notHome' ? 'ring-4 ring-gray-200 border-gray-400' : 'border-gray-300 hover:bg-gray-50'}`}
-        >
-          Not Home
-        </button>
-        <button
-          onClick={() => onAction('notInterested')}
-          className={`py-4 rounded-2xl font-bold tracking-wide transition-all active:scale-95 text-white shadow-md bg-red-500 hover:bg-red-600 ${activeAction === 'notInterested' ? 'ring-4 ring-red-200' : ''}`}
-        >
-          Not Interested
-        </button>
-        <button
-          onClick={() => onAction('lead')}
-          className={`py-4 rounded-2xl font-bold tracking-wide transition-all active:scale-95 text-white shadow-lg bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 border border-blue-400/50 ${activeAction === 'lead' ? 'ring-4 ring-blue-200' : ''}`}
-        >
-          Lead
-        </button>
-        <button
-          onClick={() => onAction('sale')}
-          className={`py-4 rounded-2xl font-bold tracking-wide transition-all active:scale-95 text-white shadow-lg bg-gradient-to-br from-yellow-400 to-amber-600 hover:from-yellow-500 hover:to-amber-700 border border-amber-400/50 ${activeAction === 'sale' ? 'ring-4 ring-amber-200' : ''}`}
-        >
-          Sale / Sold
-        </button>
+
+      {/* Action Dock */}
+      <div className="mx-auto max-w-sm bg-white/60 backdrop-blur-xl border border-white/40 shadow-2xl rounded-3xl p-3 flex justify-between items-center pointer-events-auto ring-1 ring-black/5">
+        
+        {buttons.map((type) => (
+          <button
+            key={type}
+            onClick={() => onAction(activeAction === type ? null : type)}
+            className={`
+              relative flex flex-col items-center justify-center w-[72px] h-[72px] rounded-2xl border transition-all duration-300 ease-out
+              ${getButtonStyles(type)}
+            `}
+          >
+            {getIcon(type)}
+            <span className="text-[10px] font-black uppercase tracking-wider mt-1.5 opacity-90">
+              {getLabel(type)}
+            </span>
+          </button>
+        ))}
+
       </div>
     </div>
   );
