@@ -19,30 +19,30 @@ export const DailyStats = ({ stats, totalVolume = 0 }: DailyStatsProps) => {
   return (
     <div className="bg-white px-4 py-3 shadow-sm z-20 flex-shrink-0">
       
-      {/* MINECRAFT XP BAR */}
-      <div className="mb-3 relative pt-1">
-        <div className="flex justify-between items-end mb-1">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#55FF55] drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+      {/* MINECRAFT XP BAR SLIMMED */}
+      <div className="mb-2 relative pt-1">
+        <div className="flex justify-between items-end mb-0.5">
+          <span className="text-[8px] uppercase font-black tracking-widest text-[#55FF55] drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
             Level {currentLevel}
           </span>
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#55FF55] drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+          <span className="text-[8px] uppercase font-black tracking-widest text-[#55FF55] drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
             {xp} XP
           </span>
         </div>
         
-        <div className="h-3 w-full bg-gray-900 border-2 border-gray-700 shadow-inner relative overflow-hidden flex">
+        <div className="h-1.5 w-full bg-gray-900 border border-gray-700 shadow-inner relative overflow-hidden flex">
            {/* Notched background for blocky feel */}
            <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjEwMCI+PHJlY3Qgd2lkdGg9IjIiIGhlaWdodD0iMTAwIiBmaWxsPSJibGFjayIvPjwvc3ZnPg==')] z-10 pointer-events-none"></div>
            <div 
-            className="h-full bg-gradient-to-b from-[#55FF55] via-[#22CC22] to-[#00AA00] transition-all duration-500 ease-out z-0 relative shadow-[rgba(85,255,85,0.8)_0px_0px_10px_inset]" 
+            className="h-full bg-gradient-to-b from-[#55FF55] via-[#22CC22] to-[#00AA00] transition-all duration-500 ease-out z-0 relative shadow-[rgba(85,255,85,0.8)_0px_0px_5px_inset]" 
             style={{ width: `${progressPercent}%` }}
            >
-             <div className="absolute top-0 left-0 right-0 h-0.5 bg-white opacity-40"></div>
+             <div className="absolute top-0 left-0 right-0 h-px bg-white opacity-40"></div>
            </div>
         </div>
       </div>
 
-      <div className="flex justify-between items-end mb-3">
+      <div className="flex justify-between items-end mb-2">
         <h1 className="text-xl font-bold text-gray-800">Daily Stats</h1>
         <div className="text-right leading-tight">
           <span className="block text-lg font-bold text-gray-800">${commission.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Comm</span></span>

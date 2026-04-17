@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import { Navigation, NavigationOff, Layers, Edit2, Trash2 } from 'lucide-react';
+import { Navigation, NavigationOff, Layers, Edit2, Trash2, List } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
@@ -53,6 +53,7 @@ interface GPSMapProps {
   repName: string;
   onEditRecord: (record: KnockRecord) => void;
   onDeleteRecord: (id: string) => void;
+  onShowHistory: () => void;
 }
 
 const MapRecenter = ({ location, followMe }: { location: { lat: number; lng: number } | null, followMe: boolean }) => {
@@ -101,12 +102,15 @@ const GeomanSetup = ({ onTerritoryCreate }: { onTerritoryCreate: (payload: any) 
   return null;
 };
 
-const MapInteraction = ({ onMapClick, activeAction }: { onMapClick: (lat: number, lng: number) => void, activeAction: string | null }) => {
+const MapInteraction = ({ onMapClick, activeAction, setFollowMe }: { onMapClick: (lat: number, lng: number) => void, activeAction: string | null, setFollowMe: (val: boolean) => void }) => {
   const map = useMapEvents({
     click(e) {
       if (activeAction) {
         onMapClick(e.latlng.lat, e.latlng.lng);
       }
+    },
+    dragstart() {
+      setFollowMe(false);
     }
   });
 
@@ -134,7 +138,8 @@ export const GPSMap = ({
   isAdmin,
   repName,
   onEditRecord,
-  onDeleteRecord
+  onDeleteRecord,
+  onShowHistory
 }: GPSMapProps) => {
   const [isSatellite, setIsSatellite] = useState(false);
   const defaultCenter: [number, number] = [44.9778, -93.2650];
@@ -150,14 +155,14 @@ export const GPSMap = ({
   };
 
   return (
-    <div className={`flex-grow flex flex-col mx-4 my-2 mb-4 overflow-hidden rounded-2xl shadow-inner relative z-10 border transition-all duration-300 ${activeAction ? 'ring-4 ring-blue-400 border-blue-500' : 'border-gray-200'}`}>
+    <div className={`flex-grow w-full flex flex-col my-1 overflow-hidden relative z-10 border-t transition-all duration-300 ${activeAction ? 'ring-4 ring-blue-400 border-blue-500 rounded-2xl mx-4 mb-4' : 'border-gray-200'}`}>
       <MapContainer 
         center={location ? [location.lat, location.lng] : defaultCenter} 
         zoom={17} 
         className="w-full h-full z-0 font-sans"
         zoomControl={false}
       >
-        <MapInteraction onMapClick={onMapClick} activeAction={activeAction} />
+        <MapInteraction onMapClick={onMapClick} activeAction={activeAction} setFollowMe={setFollowMe} />
         
         <TileLayer
           attribution='&copy; React Leaflet'
@@ -233,11 +238,19 @@ export const GPSMap = ({
       </div>
 
       <button
+        onClick={onShowHistory}
+        className="absolute bottom-20 right-4 p-3 rounded-full shadow-lg z-[400] transition-colors border bg-white text-gray-700 border-gray-200"
+        title="History"
+      >
+        <List size={22} />
+      </button>
+
+      <button
         onClick={() => setFollowMe(!followMe)}
-        className={`absolute bottom-4 right-4 p-3 rounded-full shadow-lg z-[400] transition-colors border ${followMe ? 'bg-blue-500 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200'}`}
+        className={`absolute bottom-6 right-4 p-3 rounded-full shadow-lg z-[400] transition-colors border ${followMe ? 'bg-blue-500 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200'}`}
         title="Follow My Location"
       >
-        {followMe ? <Navigation size={24} /> : <NavigationOff size={24} />}
+        {followMe ? <Navigation size={22} /> : <NavigationOff size={22} />}
       </button>
 
       <div className="absolute top-2 left-2 z-[400] pointer-events-none">

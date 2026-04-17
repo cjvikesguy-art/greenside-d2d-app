@@ -31,6 +31,7 @@ function App() {
   const [selectedLocation, setSelectedLocation] = useState<{lat: number, lng: number} | null>(null);
 
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [toast, setToast] = useState<{ show: boolean, type: ActionType | null }>({ show: false, type: null });
   const [showRepSettings, setShowRepSettings] = useState(false);
   const [globalNotification, setGlobalNotification] = useState<{message: string; visible: boolean}>({ message: '', visible: false });
@@ -408,8 +409,8 @@ function App() {
           repName={repName}
           onEditRecord={handleEditRecord}
           onDeleteRecord={handleDeleteRecord}
+          onShowHistory={() => setShowHistory(true)}
         />
-        {!formOpen && !showLeaderboard && <RecentKnocks history={history} />}
       </div>
       
       <KnockBar onAction={handleActionClick} activeAction={activeAction} />
@@ -421,6 +422,8 @@ function App() {
         onClose={closeForm} 
         onSubmit={handleFormSubmit} 
       />
+
+      {showHistory && <RecentKnocks history={history} onClose={() => setShowHistory(false)} />}
     </div>
   );
 }

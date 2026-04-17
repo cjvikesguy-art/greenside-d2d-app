@@ -5,12 +5,11 @@ import type { KnockRecord } from '../types';
 
 interface RecentKnocksProps {
   history: KnockRecord[];
+  onClose: () => void;
 }
 
-export const RecentKnocks = ({ history }: RecentKnocksProps) => {
+export const RecentKnocks = ({ history, onClose }: RecentKnocksProps) => {
   const [activeNotes, setActiveNotes] = useState<KnockRecord | null>(null);
-
-  const recent = history.slice(0, 5);
 
   const getTypeStyle = (type: string) => {
     switch(type) {
@@ -32,42 +31,64 @@ export const RecentKnocks = ({ history }: RecentKnocksProps) => {
     }
   };
 
-  if (history.length === 0) return null;
-
   return (
-    <>
-      <div className="absolute bottom-[20%] left-2 right-2 md:left-4 md:right-4 z-20 bg-white/95 backdrop-blur shadow-lg rounded-2xl p-4 max-h-48 overflow-y-auto border border-gray-100">
-        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Recent Knocks</h3>
-        <div className="space-y-2">
-          {recent.map((record) => (
-            <div key={record.id} className="flex justify-between items-center text-sm border-b border-gray-100 pb-2 last:border-0 last:pb-0">
-              <div className="flex items-center space-x-2">
-                <span className={`px-2 py-1 rounded-md text-xs font-bold ${getTypeStyle(record.type)}`}>
-                  {getTypeText(record.type)}
-                </span>
-                {record.name && <span className="font-medium text-gray-800">{record.name}</span>}
+    <div className="fixed inset-0 z-[600] flex flex-col justify-end">
+      <div 
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity animate-[fade-in_0.2s_ease-out]"
+        onClick={onClose}
+      />
+      
+      <div className="relative w-full bg-white rounded-t-3xl p-6 pb-12 shadow-2xl z-10 animate-[slide-up_0.3s_ease-out] h-[85vh] overflow-hidden flex flex-col">
+        <button 
+          onClick={onClose}
+          type="button"
+          className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"
+        >
+          <X size={20} />
+        </button>
+
+        <h2 className="text-2xl font-black mb-6 uppercase tracking-widest text-gray-800">
+          History
+        </h2>
+
+        {history.length === 0 ? (
+          <div className="flex-grow flex items-center justify-center text-gray-400 font-bold uppercase tracking-widest text-sm">
+            No history today.
+          </div>
+        ) : (
+          <div className="flex-grow overflow-y-auto space-y-3 pb-8">
+            {history.map((record) => (
+              <div key={record.id} className="flex justify-between items-center text-sm border-b border-gray-100 pb-3 last:border-0">
+                <div className="flex items-center space-x-3">
+                  <span className={`px-2 py-1 rounded-md text-xs font-bold ${getTypeStyle(record.type)}`}>
+                    {getTypeText(record.type)}
+                  </span>
+                  <div>
+                    {record.name && <p className="font-bold text-gray-800 tracking-wide m-0 leading-tight">{record.name}</p>}
+                    <p className="text-[10px] text-gray-400 uppercase tracking-widest m-0 leading-tight">
+                      {formatDistanceToNow(record.timestamp, { addSuffix: true })}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  {(record.notes || record.appointmentDate || record.subscriptionTier) && (
+                    <button 
+                      onClick={() => setActiveNotes(record)}
+                      className="p-2 rounded-full hover:bg-gray-100 text-blue-500 transition-colors"
+                    >
+                      <FileText size={18} />
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <span className="text-[10px] text-gray-400">
-                  {formatDistanceToNow(record.timestamp, { addSuffix: true })}
-                </span>
-                {record.notes && (
-                  <button 
-                    onClick={() => setActiveNotes(record)}
-                    className="p-1 rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
-                  >
-                    <FileText size={16} />
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Notes Modal */}
       {activeNotes && (
-        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[700] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl relative animate-[slide-up_0.2s_ease-out]">
             <button 
               onClick={() => setActiveNotes(null)}
@@ -99,6 +120,6 @@ export const RecentKnocks = ({ history }: RecentKnocksProps) => {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
