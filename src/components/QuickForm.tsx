@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Calendar, Clock } from 'lucide-react';
+import { X, Calendar } from 'lucide-react';
 import { salesConfig } from '../salesConfig';
 import type { ActionType } from './KnockBar';
 import type { KnockRecord } from '../types';
