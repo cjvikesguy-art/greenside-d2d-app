@@ -73,6 +73,9 @@ export const DailyStats = ({ stats, totalVolume = 0 }: DailyStatsProps) => {
       {/* EXPANDED FULL CARDS */}
       {expanded && (
         <div className="px-4 pb-4 pt-2 border-t border-gray-100 animate-[slide-down_0.2s_ease-out]">
+          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center mb-2">
+            Total Knocks: {total}
+          </div>
           <div className="grid grid-cols-4 gap-2">
             <div className="flex flex-col items-center p-2 rounded-lg bg-gray-50 border border-gray-100">
               <span className="text-[10px] text-gray-500 font-bold mb-1 uppercase tracking-wider">NH</span>
