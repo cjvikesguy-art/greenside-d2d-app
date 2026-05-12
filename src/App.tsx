@@ -44,7 +44,7 @@ function App() {
   // Fetch initial history from Supabase Cloud on load
   useEffect(() => {
     const fetchCloudData = async () => {
-      const { data: knocksData } = await supabase.from('knocks').select('*').order('created_at', { ascending: false });
+      const { data: knocksData } = await supabase.from('knocks').select('*').limit(10000).order('created_at', { ascending: false });
       if (knocksData) {
         const mappedHistory = knocksData.map(dbRec => ({
           id: dbRec.id,
