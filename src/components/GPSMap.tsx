@@ -5,6 +5,8 @@ import { Navigation, NavigationOff, Layers, Edit2, Trash2, List } from 'lucide-r
 import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
+import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
+import 'leaflet-control-geocoder';
 import type { KnockRecord, TerritoryRecord } from '../types';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -63,6 +65,28 @@ const MapRecenter = ({ location, followMe }: { location: { lat: number; lng: num
       map.setView([location.lat, location.lng], map.getZoom(), { animate: true });
     }
   }, [location, followMe, map]);
+  return null;
+};
+
+const GeocoderSetup = () => {
+  const map = useMap();
+  useEffect(() => {
+    // @ts-ignore
+    const geocoder = L.Control.geocoder({
+      defaultMarkGeocode: false,
+      position: 'topright'
+    })
+    .on('markgeocode', function(e: any) {
+      const bbox = e.geocode.bbox;
+      map.fitBounds(bbox);
+    })
+    .addTo(map);
+
+    return () => {
+      map.removeControl(geocoder);
+    };
+  }, [map]);
+
   return null;
 };
 
@@ -173,6 +197,7 @@ export const GPSMap = ({
           maxZoom={19}
         />
 
+        <GeocoderSetup />
         {isAdmin && <GeomanSetup onTerritoryCreate={onTerritoryCreate} />}
         
         {territories.map((t) => {

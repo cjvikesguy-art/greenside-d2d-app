@@ -26,3 +26,4 @@ export interface TerritoryRecord {
   layer_type: string;
   latlngs: any;
 }
+
