@@ -16,6 +16,7 @@ export interface KnockRecord {
   appointmentTimeType?: string;
   appointmentTime?: string;
   subscriptionTier?: string;
+  streetAddress?: string;
 }
 
 

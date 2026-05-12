@@ -10,9 +10,10 @@ interface QuickFormProps {
   onClose: () => void;
   onSubmit: (data: any) => void;
   initialData?: KnockRecord | null;
+  selectedAddress?: string;
 }
 
-export const QuickForm = ({ isOpen, type, onClose, onSubmit, initialData }: QuickFormProps) => {
+export const QuickForm = ({ isOpen, type, onClose, onSubmit, initialData, selectedAddress }: QuickFormProps) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [price, setPrice] = useState('');
@@ -79,7 +80,8 @@ export const QuickForm = ({ isOpen, type, onClose, onSubmit, initialData }: Quic
       appointmentDate,
       appointmentTimeType,
       appointmentTime,
-      subscriptionTier
+      subscriptionTier,
+      streetAddress: initialData?.streetAddress || selectedAddress
     });
   };
 
@@ -109,6 +111,13 @@ export const QuickForm = ({ isOpen, type, onClose, onSubmit, initialData }: Quic
         <h2 className={`text-2xl font-black mb-6 uppercase tracking-widest ${headerColor}`}>
           {typeText}
         </h2>
+
+        {(initialData?.streetAddress || selectedAddress) && (
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-6 text-sm font-bold text-gray-700 flex items-center shadow-inner">
+            <span className="text-gray-400 mr-2 uppercase text-[10px] tracking-widest">Knocking at:</span> 
+            {initialData?.streetAddress || selectedAddress}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           

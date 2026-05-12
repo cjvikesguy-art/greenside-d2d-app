@@ -34,7 +34,8 @@ function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [toast, setToast] = useState<{ show: boolean, type: ActionType | null }>({ show: false, type: null });
   const [showRepSettings, setShowRepSettings] = useState(false);
-  const [globalNotification, setGlobalNotification] = useState<{message: string; visible: boolean}>({ message: '', visible: false });
+  const [selectedAddress, setSelectedAddress] = useState<string>('');
+  const [globalNotification, setGlobalNotification] = useState<{message: string; visible: boolean; isError?: boolean}>({ message: '', visible: false, isError: false });
 
   // Sync Rep Name locally
   useEffect(() => {
@@ -61,7 +62,8 @@ function App() {
           appointmentDate: dbRec.appointment_date,
           appointmentTimeType: dbRec.appointment_time_type,
           appointmentTime: dbRec.appointment_time,
-          subscriptionTier: dbRec.subscription_tier
+          subscriptionTier: dbRec.subscription_tier,
+          streetAddress: dbRec.street_address
         }));
         setHistory(mappedHistory);
       }
@@ -110,7 +112,8 @@ function App() {
             appointmentDate: dbRec.appointment_date,
             appointmentTimeType: dbRec.appointment_time_type,
             appointmentTime: dbRec.appointment_time,
-            subscriptionTier: dbRec.subscription_tier
+            subscriptionTier: dbRec.subscription_tier,
+            streetAddress: dbRec.street_address
           };
           setHistory(prev => {
             if (prev.find(k => k.id === newRecord.id)) return prev;
@@ -133,7 +136,8 @@ function App() {
              appointmentDate: dbRec.appointment_date,
              appointmentTimeType: dbRec.appointment_time_type,
              appointmentTime: dbRec.appointment_time,
-             subscriptionTier: dbRec.subscription_tier
+             subscriptionTier: dbRec.subscription_tier,
+             streetAddress: dbRec.street_address
            } : k));
         }
       )
@@ -190,6 +194,20 @@ function App() {
   const handleMapClick = async (lat: number, lng: number) => {
     if (!activeAction) return;
 
+    let address = '';
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+      const data = await res.json();
+      if (data && data.address) {
+        address = `${data.address.house_number || ''} ${data.address.road || ''}`.trim();
+        if (!address) address = data.display_name || '';
+      }
+    } catch (e) {
+      console.error('Geocoding failed', e);
+    }
+    
+    setSelectedAddress(address);
+
     if (activeAction === 'lead' || activeAction === 'sale') {
       setSelectedLocation({ lat, lng });
       setEditingRecord(null); // Ensure fresh form
@@ -201,7 +219,8 @@ function App() {
         type: activeAction,
         lat,
         lng,
-        repName
+        repName,
+        streetAddress: address
       };
 
       const dbPayload = {
@@ -209,13 +228,20 @@ function App() {
         type: newRecord.type,
         lat: newRecord.lat,
         lng: newRecord.lng,
-        rep_name: newRecord.repName
+        rep_name: newRecord.repName,
+        street_address: newRecord.streetAddress
       };
 
-      setHistory(prev => [newRecord, ...prev]);
-      setActiveAction(null);
-      await supabase.from('knocks').insert(dbPayload);
-      triggerToast(activeAction);
+      const { error } = await supabase.from('knocks').insert(dbPayload);
+      
+      if (error) {
+        setGlobalNotification({ message: 'SAVE FAILED: Check your internet connection.', visible: true, isError: true });
+        setTimeout(() => setGlobalNotification(n => ({...n, visible: false})), 5000);
+      } else {
+        setHistory(prev => [newRecord, ...prev]);
+        setActiveAction(null);
+        triggerToast(activeAction);
+      }
     }
   };
 
@@ -236,14 +262,21 @@ function App() {
         appointment_date: data.appointmentDate,
         appointment_time_type: data.appointmentTimeType,
         appointment_time: data.appointmentTime,
-        subscription_tier: data.subscriptionTier
+        subscription_tier: data.subscriptionTier,
+        street_address: data.streetAddress
       };
       
-      await supabase.from('knocks').update(dbPayload).eq('id', updatedRecord.id);
+      const { error } = await supabase.from('knocks').update(dbPayload).eq('id', updatedRecord.id);
       
-      setFormOpen(false);
-      setEditingRecord(null);
-      triggerToast(actionType);
+      if (error) {
+        setGlobalNotification({ message: 'SAVE FAILED: Check your internet connection.', visible: true, isError: true });
+        setTimeout(() => setGlobalNotification(n => ({...n, visible: false})), 5000);
+      } else {
+        setHistory(prev => prev.map(k => k.id === updatedRecord.id ? updatedRecord : k));
+        setFormOpen(false);
+        setEditingRecord(null);
+        triggerToast(actionType);
+      }
       
     } else {
       // Handle Insert
@@ -262,11 +295,10 @@ function App() {
         appointmentDate: data.appointmentDate,
         appointmentTimeType: data.appointmentTimeType,
         appointmentTime: data.appointmentTime,
-        subscriptionTier: data.subscriptionTier
+        subscriptionTier: data.subscriptionTier,
+        streetAddress: data.streetAddress || selectedAddress
       };
 
-      setHistory(prev => [newRecord, ...prev]);
-      
       const dbPayload = {
         id: newRecord.id,
         type: newRecord.type,
@@ -281,24 +313,33 @@ function App() {
         appointment_date: newRecord.appointmentDate,
         appointment_time_type: newRecord.appointmentTimeType,
         appointment_time: newRecord.appointmentTime,
-        subscription_tier: newRecord.subscriptionTier
+        subscription_tier: newRecord.subscriptionTier,
+        street_address: newRecord.streetAddress
       };
 
-      await supabase.from('knocks').insert(dbPayload);
+      const { error } = await supabase.from('knocks').insert(dbPayload);
 
-      // Webhook trigger
-      if (newRecord.type === 'sale' && salesConfig.calendarWebhookUrl) {
-         fetch(salesConfig.calendarWebhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newRecord)
-         }).catch(err => console.error("Webhook err:", err));
+      if (error) {
+        setGlobalNotification({ message: 'SAVE FAILED: Check your internet connection.', visible: true, isError: true });
+        setTimeout(() => setGlobalNotification(n => ({...n, visible: false})), 5000);
+      } else {
+        setHistory(prev => [newRecord, ...prev]);
+        
+        // Webhook trigger
+        if (newRecord.type === 'sale' && salesConfig.calendarWebhookUrl) {
+           fetch(salesConfig.calendarWebhookUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(newRecord)
+           }).catch(err => console.error("Webhook err:", err));
+        }
+        
+        setFormOpen(false);
+        setActiveAction(null);
+        setSelectedLocation(null);
+        setSelectedAddress('');
+        triggerToast(actionType);
       }
-      
-      setFormOpen(false);
-      setActiveAction(null);
-      setSelectedLocation(null);
-      triggerToast(actionType);
     }
   };
 
@@ -339,8 +380,8 @@ function App() {
       
       {globalNotification.visible && (
         <div className="absolute top-[10%] left-1/2 -translate-x-1/2 z-[600] w-[90%] max-w-sm animate-[slide-down_0.5s_ease-out]">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white font-black px-6 py-4 rounded-2xl shadow-2xl border-[3px] border-gold text-center uppercase tracking-widest shadow-[0_0_25px_rgba(197,160,89,0.5)]">
-            🎉 {globalNotification.message}
+          <div className={`text-white font-black px-6 py-4 rounded-2xl shadow-2xl border-[3px] text-center uppercase tracking-widest ${globalNotification.isError ? 'bg-red-600 border-red-800 shadow-[0_0_25px_rgba(220,38,38,0.5)]' : 'bg-gradient-to-r from-blue-600 to-blue-800 border-gold shadow-[0_0_25px_rgba(197,160,89,0.5)]'}`}>
+            {globalNotification.isError ? '❌ ' : '🎉 '}{globalNotification.message}
           </div>
         </div>
       )}
@@ -420,7 +461,8 @@ function App() {
         type={editingRecord ? editingRecord.type : activeAction} 
         initialData={editingRecord}
         onClose={closeForm} 
-        onSubmit={handleFormSubmit} 
+        onSubmit={handleFormSubmit}
+        selectedAddress={selectedAddress}
       />
 
       {showHistory && <RecentKnocks history={history} onClose={() => setShowHistory(false)} />}
